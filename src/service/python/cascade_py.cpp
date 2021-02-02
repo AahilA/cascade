@@ -290,6 +290,22 @@ auto list_keys(ServiceClientAPI& capi, persistent::version_t version, uint32_t s
 
 }
 
+template<typename SubgroupType>
+auto list_keys(ServiceClientAPI& capi, uint64_t ts_us, uint32_t subgroup_index, uint32_t shard_index){
+
+    if constexpr (std::is_same<typename SubgroupType::KeyType,uint64_t>::value) {
+        derecho::rpc::QueryResults<std::vector<const typename SubgroupType::KeyType>> result = capi.template list_keys_by_time<CascadeType>(ts_us, subgroup_index, shard_index);
+        QueryResultsStore<std::vector<const typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result,u_vf);
+        return py::cast(s);
+    }
+    else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value){
+        derecho::rpc::QueryResults<std::vector<const typename SubgroupType::KeyType>> result = capi.template list_keys_by_time<CascadeType>(ts_us, subgroup_index, shard_index);
+        QueryResultsStore<std::vector<const typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result,s_vf);
+        return py::cast(s);
+    }
+
+}
+
 // ----------------
 // Python interface
 // ----------------
@@ -306,13 +322,13 @@ PYBIND11_MODULE(cascade_py,m)
             return "Service Client API for managing cascade store.";
         })
       .def("get_keylist", [](ServiceClientAPI& capi, std::string service_type, persistent::version_t version, uint32_t subgroup_index, uint32_t shard_index){
-            
-            
             on_subgroup_type(service_type, return list_keys, capi, version, subgroup_index, shard_index);
-
             return py::cast(NULL);
-
-         },"Get ")
+         },"Get key list from shards")
+      .def("get_keylist_by_time", [](ServiceClientAPI& capi, std::string service_type, uint64_t ts_us, uint32_t subgroup_index, uint32_t shard_index){
+            on_subgroup_type(service_type, return list_keys_by_time, capi, ts_us, subgroup_index, shard_index);
+            return py::cast(NULL);
+         },"Get key list from shards by time")
 	  .def("get_members", &ServiceClientAPI::get_members, "Get all members in the current derecho group.")
       /* deprecated: subgroup ID should be hidden from application.
 	  .def("get_shard_members", [](ServiceClientAPI &capi, uint32_t subgroup_index, uint32_t shard_index){
