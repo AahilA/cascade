@@ -57,6 +57,24 @@ std::function<py::bytes(ObjectWithUInt64Key)> u_f = [](ObjectWithUInt64Key obj) 
     };
 
 /**
+    Lambda function for handling the unwrapping of ObjectWithStringKey
+*/
+std::function<py::list(std::vector<std::string>)> s_vf = [](std::vector<std::string> obj) {
+
+        return py::list(obj);   
+
+    };
+
+/**
+    Lambda function for handling the unwrapping of std::vector<uint64_t>
+*/
+std::function<py::list(std::vector<uint64_t>)> u_vf = [](std::vector<uint64_t> obj) {
+
+        return py::list(obj);   
+
+    };
+
+/**
     Lambda function for handling the unwrapping of tuple of version and timestamp
 */
 auto bundle_f = [](std::tuple<persistent::version_t,uint64_t> obj){
@@ -256,6 +274,21 @@ auto get_by_time(ServiceClientAPI& capi, std::string& key, uint64_t ts_us, uint3
     }
 }
 
+template<typename SubgroupType>
+auto list_keys(ServiceClientAPI& capi, persistent::version_t version, uint32_t subgroup_index, uint32_t shard_index){
+
+    if constexpr (std::is_same<typename SubgroupType::KeyType,uint64_t>::value) {
+        derecho::rpc::QueryResults<std::vector<const typename SubgroupType::KeyType>> result = capi.template list_keys<CascadeType>(version, subgroup_index, shard_index);
+        QueryResultsStore<std::vector<const typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result,u_vf);
+        return py::cast(s);
+    }
+    else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value){
+        derecho::rpc::QueryResults<std::vector<const typename SubgroupType::KeyType>> result = capi.template list_keys<CascadeType>(version, subgroup_index, shard_index);
+        QueryResultsStore<std::vector<const typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result,s_vf);
+        return py::cast(s);
+    }
+
+}
 
 // ----------------
 // Python interface
@@ -272,6 +305,14 @@ PYBIND11_MODULE(cascade_py,m)
         [](const ServiceClientAPI &a) {
             return "Service Client API for managing cascade store.";
         })
+      .def("get_keylist", [](ServiceClientAPI& capi, std::string service_type, persistent::version_t version, uint32_t subgroup_index, uint32_t shard_index){
+            
+            
+            on_subgroup_type(service_type, return list_keys, capi, version, subgroup_index, shard_index);
+
+            return py::cast(NULL);
+
+         },"Get ")
 	  .def("get_members", &ServiceClientAPI::get_members, "Get all members in the current derecho group.")
       /* deprecated: subgroup ID should be hidden from application.
 	  .def("get_shard_members", [](ServiceClientAPI &capi, uint32_t subgroup_index, uint32_t shard_index){
@@ -365,6 +406,22 @@ PYBIND11_MODULE(cascade_py,m)
                             return qrs.get_result();
                             
                             }, "Get result from QueryResultsStore for ObjectWithUInt64Key")
+            ;
+
+    py::class_<QueryResultsStore<std::vector<std::string>, py::list>>(m, "QueryResultsStoreStringKeyList")
+            .def("get_result", [](QueryResultsStore<std::vector<std::string>& qrs){
+                            
+                            return qrs.get_result();
+                            
+                            }, "Get result from QueryResultsStore for String Key List")
+            ;
+
+    py::class_<QueryResultsStore<std::vector<std::uint64_t>, py::list>>(m, "QueryResultsStoreUInt64KeyList")
+            .def("get_result", [](QueryResultsStore<std::vector<std::uint64_t>& qrs){
+                            
+                            return qrs.get_result();
+                            
+                            }, "Get result from QueryResultsStore for UInt64 Key List")
             ;
 	
 }
