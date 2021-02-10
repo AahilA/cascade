@@ -263,6 +263,7 @@ auto get(ServiceClientAPI& capi, std::string& key, persistent::version_t ver, ui
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get<SubgroupType>(static_cast<uint64_t>(std::stol(key)),ver,subgroup_index,shard_index);
         check_get_result(result);
         QueryResultsStore<const typename SubgroupType::ObjectType, py::object> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, u_f); 
+        std::cout << "Yay" << std::endl;
         return py::cast(s);
 
     } else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value) {
