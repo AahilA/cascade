@@ -61,7 +61,7 @@ std::function<py::bytes(ObjectWithUInt64Key)> u_f = [](ObjectWithUInt64Key obj) 
 */
 std::function<py::list(std::vector<std::string>)> s_vf = [](std::vector<std::string> obj) {
 
-        return py::list(obj);   
+        return py::cast(obj);
 
     };
 
@@ -70,7 +70,7 @@ std::function<py::list(std::vector<std::string>)> s_vf = [](std::vector<std::str
 */
 std::function<py::list(std::vector<uint64_t>)> u_vf = [](std::vector<uint64_t> obj) {
 
-        return py::list(obj);   
+        return py::cast(obj);   
 
     };
 
@@ -278,29 +278,29 @@ template<typename SubgroupType>
 auto list_keys(ServiceClientAPI& capi, persistent::version_t version, uint32_t subgroup_index, uint32_t shard_index){
 
     if constexpr (std::is_same<typename SubgroupType::KeyType,uint64_t>::value) {
-        derecho::rpc::QueryResults<std::vector<const typename SubgroupType::KeyType>> result = capi.template list_keys<CascadeType>(version, subgroup_index, shard_index);
-        QueryResultsStore<std::vector<const typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result,u_vf);
+        derecho::rpc::QueryResults<std::vector<typename SubgroupType::KeyType>> result = capi.template list_keys<SubgroupType>(version, subgroup_index, shard_index);
+        QueryResultsStore<std::vector<typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<std::vector<typename SubgroupType::KeyType>, py::list>(result,u_vf);
         return py::cast(s);
     }
     else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value){
-        derecho::rpc::QueryResults<std::vector<const typename SubgroupType::KeyType>> result = capi.template list_keys<CascadeType>(version, subgroup_index, shard_index);
-        QueryResultsStore<std::vector<const typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result,s_vf);
+        derecho::rpc::QueryResults<std::vector<typename SubgroupType::KeyType>> result = capi.template list_keys<SubgroupType>(version, subgroup_index, shard_index);
+        QueryResultsStore<std::vector<typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<std::vector<typename SubgroupType::KeyType>, py::list>(result,s_vf);
         return py::cast(s);
     }
 
 }
 
 template<typename SubgroupType>
-auto list_keys(ServiceClientAPI& capi, uint64_t ts_us, uint32_t subgroup_index, uint32_t shard_index){
+auto list_keys_by_time(ServiceClientAPI& capi, uint64_t ts_us, uint32_t subgroup_index, uint32_t shard_index){
 
     if constexpr (std::is_same<typename SubgroupType::KeyType,uint64_t>::value) {
-        derecho::rpc::QueryResults<std::vector<const typename SubgroupType::KeyType>> result = capi.template list_keys_by_time<CascadeType>(ts_us, subgroup_index, shard_index);
-        QueryResultsStore<std::vector<const typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result,u_vf);
+        derecho::rpc::QueryResults<std::vector<typename SubgroupType::KeyType>> result = capi.template list_keys_by_time<SubgroupType>(ts_us, subgroup_index, shard_index);
+        QueryResultsStore<std::vector<typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<std::vector<typename SubgroupType::KeyType>, py::list>(result,u_vf);
         return py::cast(s);
     }
     else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value){
-        derecho::rpc::QueryResults<std::vector<const typename SubgroupType::KeyType>> result = capi.template list_keys_by_time<CascadeType>(ts_us, subgroup_index, shard_index);
-        QueryResultsStore<std::vector<const typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result,s_vf);
+        derecho::rpc::QueryResults<std::vector<typename SubgroupType::KeyType>> result = capi.template list_keys_by_time<SubgroupType>(ts_us, subgroup_index, shard_index);
+        QueryResultsStore<std::vector<typename SubgroupType::KeyType>, py::list> *s = new QueryResultsStore<std::vector<typename SubgroupType::KeyType>, py::list>(result,s_vf);
         return py::cast(s);
     }
 
@@ -425,7 +425,7 @@ PYBIND11_MODULE(cascade_py,m)
             ;
 
     py::class_<QueryResultsStore<std::vector<std::string>, py::list>>(m, "QueryResultsStoreStringKeyList")
-            .def("get_result", [](QueryResultsStore<std::vector<std::string>& qrs){
+            .def("get_result", [](QueryResultsStore<std::vector<std::string>, py::list>& qrs){
                             
                             return qrs.get_result();
                             
@@ -433,7 +433,7 @@ PYBIND11_MODULE(cascade_py,m)
             ;
 
     py::class_<QueryResultsStore<std::vector<std::uint64_t>, py::list>>(m, "QueryResultsStoreUInt64KeyList")
-            .def("get_result", [](QueryResultsStore<std::vector<std::uint64_t>& qrs){
+            .def("get_result", [](QueryResultsStore<std::vector<std::uint64_t>, py::list>& qrs){
                             
                             return qrs.get_result();
                             
