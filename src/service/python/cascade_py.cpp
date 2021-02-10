@@ -39,20 +39,19 @@ static const char* policy_names[] = {
 /**
     Lambda function for handling the unwrapping of ObjectWithStringKey
 */
-std::function<py::bytes(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj) {
+std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj) {
 
-        std::string s(obj.blob.bytes, obj.blob.size);
-        return py::bytes(s);   
+        return py::cast(obj);
 
     };
 
 /**
     Lambda function for handling the unwrapping of ObjectWithUInt64Key
 */
-std::function<py::bytes(ObjectWithUInt64Key)> u_f = [](ObjectWithUInt64Key obj) {
+std::function<py::object(ObjectWithUInt64Key)> u_f = [](ObjectWithUInt64Key obj) {
 
-        std::string s(obj.blob.bytes, obj.blob.size);
-        return py::bytes(s);
+        // std::string s(obj.blob.bytes, obj.blob.size);
+        return py::cast(obj);
 
     };
 
@@ -129,6 +128,8 @@ class QueryResultsStore{
         }
         
     };
+
+
 
 
 /**
@@ -235,13 +236,13 @@ auto get(ServiceClientAPI& capi, std::string& key, persistent::version_t ver, ui
     if constexpr (std::is_same<typename SubgroupType::KeyType,uint64_t>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get<SubgroupType>(static_cast<uint64_t>(std::stol(key)),ver,subgroup_index,shard_index);
         // check_get_result(result);
-        QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result, u_f); 
+        QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, u_f); 
         return py::cast(s);
 
     } else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get<SubgroupType>(key,ver,subgroup_index,shard_index);
         // check_get_result(result);
-        QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result, s_f); 
+        QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, s_f); 
     return py::cast(s);
 
     }
@@ -261,14 +262,14 @@ auto get_by_time(ServiceClientAPI& capi, std::string& key, uint64_t ts_us, uint3
     if constexpr (std::is_same<typename SubgroupType::KeyType,uint64_t>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get_by_time<SubgroupType>(
                 static_cast<uint64_t>(std::stol(key)),ts_us,subgroup_index,shard_index);
-        QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result,u_f); 
+        QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result,u_f); 
     return py::cast(s);
 
     } else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get<SubgroupType>(
                 key,ts_us,subgroup_index,shard_index);
 
-         QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes>(result, s_f); 
+         QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, s_f); 
     return py::cast(s);
 
     }
@@ -438,6 +439,54 @@ PYBIND11_MODULE(cascade_py,m)
                             return qrs.get_result();
                             
                             }, "Get result from QueryResultsStore for UInt64 Key List")
+            ;
+
+    py::class_<ObjectWithStringKey>(m, "ObjectWithStringKey")
+            .def("previous_version_by_key", [](ObjectWithStringKey& obj){
+                            
+                            return obj.previous_version_by_key;
+                            
+                            }, "Get previous version of object")
+            .def("version", [](ObjectWithStringKey& obj){
+                            
+                            return obj.version;
+                            
+                            }, "Get current version of object")
+            .def("timestamp", [](ObjectWithStringKey& obj){
+                            
+                            return obj.version;
+                            
+                            }, "Get timestamp of object")
+            .def("bytes", [](ObjectWithStringKey& obj){
+                            
+                            std::string s(obj.blob.bytes, obj.blob.size);
+                            return py::bytes(obj);
+                            
+                            }, "Get data of object")
+            ;
+    
+    py::class_<ObjectWithUInt64Key>(m, "ObjectWithUInt64Key")
+            .def("previous_version_by_key", [](ObjectWithUInt64Key& obj){
+                            
+                            return obj.previous_version_by_key;
+                            
+                            }, "Get previous version of object")
+            .def("version", [](ObjectWithUInt64Key& obj){
+                            
+                            return obj.version;
+                            
+                            }, "Get current version of object")
+            .def("timestamp", [](ObjectWithUInt64Key& obj){
+                            
+                            return obj.version;
+                            
+                            }, "Get timestamp of object")
+            .def("bytes", [](ObjectWithUInt64Key& obj){
+                            
+                            std::string s(obj.blob.bytes, obj.blob.size);
+                            return py::bytes(obj);
+                            
+                            }, "Get data of object")
             ;
 	
 }
