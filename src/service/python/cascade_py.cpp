@@ -61,7 +61,9 @@ class CascadeObject{
 std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj) {
 
         std::string s(obj.blob.bytes, obj.blob.size);
+        std::cout << s << std::endl;
         CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s));
+        std::cout << "Created Cascade Object" << std::endl;
         return py::cast(b);
 
     };
@@ -259,13 +261,13 @@ auto get(ServiceClientAPI& capi, std::string& key, persistent::version_t ver, ui
 
     if constexpr (std::is_same<typename SubgroupType::KeyType,uint64_t>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get<SubgroupType>(static_cast<uint64_t>(std::stol(key)),ver,subgroup_index,shard_index);
-        // check_get_result(result);
+        check_get_result(result);
         QueryResultsStore<const typename SubgroupType::ObjectType, py::object> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, u_f); 
         return py::cast(s);
 
     } else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get<SubgroupType>(key,ver,subgroup_index,shard_index);
-        // check_get_result(result);
+        check_get_result(result);
         QueryResultsStore<const typename SubgroupType::ObjectType, py::object> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, s_f); 
     return py::cast(s);
 
