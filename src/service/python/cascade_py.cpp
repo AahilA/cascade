@@ -36,12 +36,32 @@ static const char* policy_names[] = {
     nullptr
 };
 
+class Blob{
+
+    public:
+
+    uint64_t prev_ver;
+    uint64_t ver;
+    uint64_t ts;
+    py::bytes data;
+    
+    /**
+        Setter constructor.
+    */
+    QueryResultsStore(uint64_t _prev_ver, uint64_t _ver, uint64_t _ts, py::bytes _data) :  
+                    prev_ver(_prev_ver), ver(_ver), ts(_ts), data(_data)){
+    }
+        
+    };
+
 /**
     Lambda function for handling the unwrapping of ObjectWithStringKey
 */
 std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj) {
 
-        return py::cast(obj);
+        std::string s(obj.blob.bytes, obj.blob.size);
+        Blob *b = new Blob(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s))
+        return py::cast(b);
 
     };
 
@@ -50,8 +70,9 @@ std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj)
 */
 std::function<py::object(ObjectWithUInt64Key)> u_f = [](ObjectWithUInt64Key obj) {
 
-        // std::string s(obj.blob.bytes, obj.blob.size);
-        return py::cast(obj);
+        std::string s(obj.blob.bytes, obj.blob.size);
+        Blob *b = new Blob(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s))
+        return py::cast(b);
 
     };
 
