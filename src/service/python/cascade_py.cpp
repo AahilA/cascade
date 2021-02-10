@@ -134,6 +134,7 @@ class QueryResultsStore{
         Setter constructor.
     */
     QueryResultsStore(derecho::rpc::QueryResults<T> &res, std::function<K(T)> _f) :  f(_f), result(std::move(res)){
+        std::cout << "Created Lambda" << std::endl;
     }
 
     /**
@@ -436,7 +437,7 @@ PYBIND11_MODULE(cascade_py,m)
                             }, "Get result from QueryResultsStore for version and timestamp")
             ;
 
-    py::class_<QueryResultsStore<const ObjectWithStringKey, py::bytes>>(m, "QueryResultsStoreObjectWithStringKey")
+    py::class_<QueryResultsStore<const ObjectWithStringKey, py::object>>(m, "QueryResultsStoreObjectWithStringKey")
             .def("get_result", [](QueryResultsStore<const ObjectWithStringKey, py::bytes>& qrs){
                             
                             return qrs.get_result(); 
@@ -444,7 +445,7 @@ PYBIND11_MODULE(cascade_py,m)
                             }, "Get result from QueryResultsStore for ObjectWithStringKey")
             ;
     
-    py::class_<QueryResultsStore<const ObjectWithUInt64Key, py::bytes>>(m, "QueryResultsStoreObjectWithUInt64Key")
+    py::class_<QueryResultsStore<const ObjectWithUInt64Key, py::object>>(m, "QueryResultsStoreObjectWithUInt64Key")
             .def("get_result", [](QueryResultsStore<const ObjectWithUInt64Key, py::bytes>& qrs){
                             
                             return qrs.get_result();
