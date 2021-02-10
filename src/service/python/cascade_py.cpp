@@ -236,13 +236,13 @@ auto get(ServiceClientAPI& capi, std::string& key, persistent::version_t ver, ui
     if constexpr (std::is_same<typename SubgroupType::KeyType,uint64_t>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get<SubgroupType>(static_cast<uint64_t>(std::stol(key)),ver,subgroup_index,shard_index);
         // check_get_result(result);
-        QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, u_f); 
+        QueryResultsStore<const typename SubgroupType::ObjectType, py::object> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, u_f); 
         return py::cast(s);
 
     } else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get<SubgroupType>(key,ver,subgroup_index,shard_index);
         // check_get_result(result);
-        QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, s_f); 
+        QueryResultsStore<const typename SubgroupType::ObjectType, py::object> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, s_f); 
     return py::cast(s);
 
     }
@@ -262,14 +262,14 @@ auto get_by_time(ServiceClientAPI& capi, std::string& key, uint64_t ts_us, uint3
     if constexpr (std::is_same<typename SubgroupType::KeyType,uint64_t>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get_by_time<SubgroupType>(
                 static_cast<uint64_t>(std::stol(key)),ts_us,subgroup_index,shard_index);
-        QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result,u_f); 
+        QueryResultsStore<const typename SubgroupType::ObjectType, py::object> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result,u_f); 
     return py::cast(s);
 
     } else if constexpr (std::is_same<typename SubgroupType::KeyType, std::string>::value) {
         derecho::rpc::QueryResults<const typename SubgroupType::ObjectType> result = capi.template get<SubgroupType>(
                 key,ts_us,subgroup_index,shard_index);
 
-         QueryResultsStore<const typename SubgroupType::ObjectType, py::bytes> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, s_f); 
+         QueryResultsStore<const typename SubgroupType::ObjectType, py::object> *s = new QueryResultsStore<const typename SubgroupType::ObjectType, py::object>(result, s_f); 
     return py::cast(s);
 
     }
