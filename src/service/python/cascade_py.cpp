@@ -1,6 +1,6 @@
 #include <cascade/service_client_api.hpp>
 #include <pybind11/pybind11.h>
-#include <pybind11/complex.h>
+#include <pybind11/stl.h>
 #include <pybind11/stl.h>
 #include <vector>
 
@@ -44,13 +44,13 @@ class CascadeObject{
     uint64_t prev_ver;
     uint64_t ver;
     uint64_t ts;
-    // py::bytes data;
+    py::bytes data;
     
     /**
         Setter constructor.
     */
-    CascadeObject(uint64_t _prev_ver, uint64_t _ver, uint64_t _ts) :  
-                    prev_ver(_prev_ver), ver(_ver), ts(_ts){
+    CascadeObject(uint64_t _prev_ver, uint64_t _ver, uint64_t _ts, py::bytes _data) :  
+                    prev_ver(_prev_ver), ver(_ver), ts(_ts), data(_data){
     }
         
     };
@@ -61,7 +61,7 @@ class CascadeObject{
 std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj) {
 
         std::string s(obj.blob.bytes, obj.blob.size);
-        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us);
+        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s));
         return py::cast(b);
 
     };
@@ -72,7 +72,9 @@ std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj)
 std::function<py::object(ObjectWithUInt64Key)> u_f = [](ObjectWithUInt64Key obj) {
 
         std::string s(obj.blob.bytes, obj.blob.size);
-        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us);
+        std::cout << s << std::endl;
+        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s));
+        std::cout << "Created Cascade Object" << std::endl;
         return py::cast(b);
 
     };
@@ -479,11 +481,11 @@ PYBIND11_MODULE(cascade_py,m)
                             return obj.ts;
                             
                             }, "Get timestamp of object")
-            // .def("bytes", [](CascadeObject& obj){
+            .def("bytes", [](CascadeObject& obj){
                             
-            //                 return obj.data;
+                            return obj.data;
                             
-            //                 }, "Get data of object")
+                            }, "Get data of object")
             ;
 	
 }
