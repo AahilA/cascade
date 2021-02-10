@@ -344,6 +344,10 @@ PYBIND11_MODULE(cascade_py,m)
         [](const ServiceClientAPI &a) {
             return "Service Client API for managing cascade store.";
         })
+      .def("get_number_of_shards", [](ServiceClientAPI& capi, std::string service_type, uint32_t subgroup_index){
+          on_subgroup_type(service_type, return capi.template get_number_of_shards, capi, subgroup_index);
+          return py::cast(NULL);
+          },"Get number of shards in a subgroup")
       .def("get_keylist", [](ServiceClientAPI& capi, std::string service_type, persistent::version_t version, uint32_t subgroup_index, uint32_t shard_index){
             on_subgroup_type(service_type, return list_keys, capi, version, subgroup_index, shard_index);
             return py::cast(NULL);
