@@ -36,7 +36,7 @@ static const char* policy_names[] = {
     nullptr
 };
 
-class Blob{
+class CascadeObject{
 
     public:
 
@@ -48,7 +48,7 @@ class Blob{
     /**
         Setter constructor.
     */
-    QueryResultsStore(uint64_t _prev_ver, uint64_t _ver, uint64_t _ts, py::bytes _data) :  
+    CascadeObject(uint64_t _prev_ver, uint64_t _ver, uint64_t _ts, py::bytes _data) :  
                     prev_ver(_prev_ver), ver(_ver), ts(_ts), data(_data)){
     }
         
@@ -60,7 +60,7 @@ class Blob{
 std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj) {
 
         std::string s(obj.blob.bytes, obj.blob.size);
-        Blob *b = new Blob(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s))
+        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s))
         return py::cast(b);
 
     };
@@ -462,50 +462,25 @@ PYBIND11_MODULE(cascade_py,m)
                             }, "Get result from QueryResultsStore for UInt64 Key List")
             ;
 
-    py::class_<ObjectWithStringKey>(m, "ObjectWithStringKey")
-            .def("previous_version_by_key", [](ObjectWithStringKey& obj){
+    py::class_<CascadeObject>(m, "CascadeObject")
+            .def("previous_version_by_key", [](CascadeObject& obj){
                             
-                            return obj.previous_version_by_key;
-                            
-                            }, "Get previous version of object")
-            .def("version", [](ObjectWithStringKey& obj){
-                            
-                            return obj.version;
-                            
-                            }, "Get current version of object")
-            .def("timestamp", [](ObjectWithStringKey& obj){
-                            
-                            return obj.version;
-                            
-                            }, "Get timestamp of object")
-            .def("bytes", [](ObjectWithStringKey& obj){
-                            
-                            std::string s(obj.blob.bytes, obj.blob.size);
-                            return py::bytes(s);
-                            
-                            }, "Get data of object")
-            ;
-    
-    py::class_<ObjectWithUInt64Key>(m, "ObjectWithUInt64Key")
-            .def("previous_version_by_key", [](ObjectWithUInt64Key& obj){
-                            
-                            return obj.previous_version_by_key;
+                            return obj.prev_ver;
                             
                             }, "Get previous version of object")
-            .def("version", [](ObjectWithUInt64Key& obj){
+            .def("version", [](CascadeObject& obj){
                             
-                            return obj.version;
+                            return obj.ver;
                             
                             }, "Get current version of object")
-            .def("timestamp", [](ObjectWithUInt64Key& obj){
+            .def("timestamp", [](CascadeObject& obj){
                             
-                            return obj.version;
+                            return obj.ts;
                             
                             }, "Get timestamp of object")
-            .def("bytes", [](ObjectWithUInt64Key& obj){
+            .def("bytes", [](CascadeObject& obj){
                             
-                            std::string s(obj.blob.bytes, obj.blob.size);
-                            return py::bytes(s);
+                            return obj.data;
                             
                             }, "Get data of object")
             ;
