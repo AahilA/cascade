@@ -460,7 +460,7 @@ PYBIND11_MODULE(cascade_py,m)
             .def("bytes", [](ObjectWithStringKey& obj){
                             
                             std::string s(obj.blob.bytes, obj.blob.size);
-                            return py::bytes(obj);
+                            return py::bytes(s);
                             
                             }, "Get data of object")
             ;
