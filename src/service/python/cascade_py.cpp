@@ -44,13 +44,13 @@ class CascadeObject{
     uint64_t prev_ver;
     uint64_t ver;
     uint64_t ts;
-    py::bytes data;
+    // py::bytes data;
     
     /**
         Setter constructor.
     */
-    CascadeObject(uint64_t _prev_ver, uint64_t _ver, uint64_t _ts, py::bytes _data) :  
-                    prev_ver(_prev_ver), ver(_ver), ts(_ts), data(_data){
+    CascadeObject(uint64_t _prev_ver, uint64_t _ver, uint64_t _ts) :  
+                    prev_ver(_prev_ver), ver(_ver), ts(_ts){
     }
         
     };
@@ -61,7 +61,7 @@ class CascadeObject{
 std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj) {
 
         std::string s(obj.blob.bytes, obj.blob.size);
-        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s));
+        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us);
         return py::cast(b);
 
     };
@@ -72,7 +72,7 @@ std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj)
 std::function<py::object(ObjectWithUInt64Key)> u_f = [](ObjectWithUInt64Key obj) {
 
         std::string s(obj.blob.bytes, obj.blob.size);
-        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s));
+        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us);
         return py::cast(b);
 
     };
@@ -479,11 +479,11 @@ PYBIND11_MODULE(cascade_py,m)
                             return obj.ts;
                             
                             }, "Get timestamp of object")
-            .def("bytes", [](CascadeObject& obj){
+            // .def("bytes", [](CascadeObject& obj){
                             
-                            return obj.data;
+            //                 return obj.data;
                             
-                            }, "Get data of object")
+            //                 }, "Get data of object")
             ;
 	
 }
