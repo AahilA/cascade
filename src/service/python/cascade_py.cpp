@@ -49,7 +49,7 @@ class CascadeObject{
         Setter constructor.
     */
     CascadeObject(uint64_t _prev_ver, uint64_t _ver, uint64_t _ts, py::bytes _data) :  
-                    prev_ver(_prev_ver), ver(_ver), ts(_ts), data(_data)){
+                    prev_ver(_prev_ver), ver(_ver), ts(_ts), data(_data){
     }
         
     };
@@ -60,7 +60,7 @@ class CascadeObject{
 std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj) {
 
         std::string s(obj.blob.bytes, obj.blob.size);
-        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s))
+        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s));
         return py::cast(b);
 
     };
@@ -71,7 +71,7 @@ std::function<py::object(ObjectWithStringKey)> s_f = [](ObjectWithStringKey obj)
 std::function<py::object(ObjectWithUInt64Key)> u_f = [](ObjectWithUInt64Key obj) {
 
         std::string s(obj.blob.bytes, obj.blob.size);
-        Blob *b = new Blob(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s))
+        CascadeObject *b = new CascadeObject(obj.previous_version_by_key, obj.version, obj.timestamp_us, py::bytes(s));
         return py::cast(b);
 
     };
